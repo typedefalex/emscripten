@@ -17,6 +17,7 @@ void fetchFromIndexedDB()
   emscripten_fetch_attr_t attr;
   emscripten_fetch_attr_init(&attr);
   strcpy(attr.requestMethod, "GET");
+ 
   attr.onsuccess = [](emscripten_fetch_t *fetch) {
     assert(fetch->numBytes == fetch->totalBytes);
     assert(fetch->data != 0);
@@ -31,6 +32,7 @@ void fetchFromIndexedDB()
       printf("Downloading.. %lld bytes complete.\n", fetch->dataOffset + fetch->numBytes);
     }
   };
+  
   attr.attributes = EMSCRIPTEN_FETCH_APPEND | EMSCRIPTEN_FETCH_NO_DOWNLOAD;
   emscripten_fetch_t *fetch = emscripten_fetch(&attr, "gears.png");
 }
@@ -38,6 +40,7 @@ void fetchFromIndexedDB()
 // XHR and store to cache.
 int main()
 {
+  
   emscripten_fetch_attr_t attr;
   emscripten_fetch_attr_init(&attr);
   strcpy(attr.requestMethod, "GET");
@@ -46,7 +49,7 @@ int main()
     assert(fetch->data != 0);
     printf("Finished downloading %llu bytes\n", fetch->numBytes);
     emscripten_fetch_close(fetch);
-
+   
     // Test that the file now exists:
     fetchFromIndexedDB();
   };

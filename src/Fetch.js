@@ -45,9 +45,12 @@ var Fetch = {
 
   staticInit: function() {
     var isMainThread = true;
+    
 
 #if FETCH_SUPPORT_INDEXEDDB
     var onsuccess = (db) => {
+      
+      
 #if FETCH_DEBUG
       console.log('fetch: IndexedDB successfully opened.');
 #endif
@@ -240,6 +243,7 @@ function fetchCacheData(/** @type {IDBDatabase} */ db, fetch, data, onsuccess, o
 #endif // ~FETCH_SUPPORT_INDEXEDDB
 
 function fetchXHR(fetch, onsuccess, onerror, onprogress, onreadystatechange) {
+  //console.log('fetch: QQQQ', fetch.url);
   var url = HEAPU32[fetch + {{{ C_STRUCTS.emscripten_fetch_t.url }}} >> 2];
   if (!url) {
 #if FETCH_DEBUG
@@ -256,7 +260,7 @@ function fetchXHR(fetch, onsuccess, onerror, onprogress, onreadystatechange) {
   var userData = HEAPU32[fetch + {{{ C_STRUCTS.emscripten_fetch_t.userData }}} >> 2];
   var fetchAttributes = HEAPU32[fetch_attr + {{{ C_STRUCTS.emscripten_fetch_attr_t.attributes }}} >> 2];
   var timeoutMsecs = HEAPU32[fetch_attr + {{{ C_STRUCTS.emscripten_fetch_attr_t.timeoutMSecs }}} >> 2];
-  var withCredentials = !!HEAPU32[fetch_attr + {{{ C_STRUCTS.emscripten_fetch_attr_t.withCredentials }}} >> 2];
+  var withCredentials = true;//!!HEAPU32[fetch_attr + {{{ C_STRUCTS.emscripten_fetch_attr_t.withCredentials }}} >> 2];
   var destinationPath = HEAPU32[fetch_attr + {{{ C_STRUCTS.emscripten_fetch_attr_t.destinationPath }}} >> 2];
   var userName = HEAPU32[fetch_attr + {{{ C_STRUCTS.emscripten_fetch_attr_t.userName }}} >> 2];
   var password = HEAPU32[fetch_attr + {{{ C_STRUCTS.emscripten_fetch_attr_t.password }}} >> 2];
@@ -343,7 +347,12 @@ function fetchXHR(fetch, onsuccess, onerror, onprogress, onreadystatechange) {
 
   xhr.onload = (e) => {
     saveResponse(fetchAttrLoadToMemory && !fetchAttrStreamData);
+    //console.log('saveResponse: QQQQ');
     var len = xhr.response ? xhr.response.byteLength : 0;
+    //console.log('saveResponse: QQQQresponse', xhr.response);
+    //console.log('saveResponse: header', xhr.getAllResponseHeaders());
+    
+    
     Fetch.setu64(fetch + {{{ C_STRUCTS.emscripten_fetch_t.dataOffset }}}, 0);
     if (len) {
       // If the final XHR.onload handler receives the bytedata to compute total length, report that,
@@ -433,6 +442,7 @@ function fetchXHR(fetch, onsuccess, onerror, onprogress, onreadystatechange) {
 }
 
 function startFetch(fetch, successcb, errorcb, progresscb, readystatechangecb) {
+  //console.log('startFetch: QQQQ');
   // Avoid shutting down the runtime since we want to wait for the async
   // response.
   {{{ runtimeKeepalivePush() }}}
@@ -460,6 +470,51 @@ function startFetch(fetch, successcb, errorcb, progresscb, readystatechangecb) {
 #endif
     {{{ runtimeKeepalivePop() }}}
     callUserCallback(() => {
+      //HEAPU16[fetch + {{{ C_STRUCTS.emscripten_fetch_t.readyState }}} >> 1] = xhr.readyState;
+       //var url = HEAPU32[fetch + {{{ C_STRUCTS.emscripten_fetch_t.url }}} >> 2];
+       //var url_ = UTF8ToString(url);
+       //HEAPU32[fetch + {{{ C_STRUCTS.emscripten_fetch_t.url }}} >> 2] = xhr.responseURL;
+        //ptr = _malloc(200);
+        //HEAPU8.set(new Uint8Array(/** @type{Array<number>} */(xhr.responseURL)), ptr);
+        //HEAPU32[fetch + {{{ C_STRUCTS.emscripten_fetch_t.url }}} >> 2] = ptr;
+       
+        //console.log('fetch: operation success. e: ' + e);
+      
+      var host = location.protocol + "//" + location.host;
+      
+            
+      if (xhr.responseURL) {
+        console.log('fetchQQQ1');
+       var url = HEAPU32[fetch + {{{ C_STRUCTS.emscripten_fetch_t.url }}} >> 2];
+       
+       
+       var qq = host + "/" + UTF8ToString(url);
+       console.log(location, qq, xhr.responseURL);
+       
+       console.log('fetchQQQ2', qq !==  xhr.responseURL, !url, UTF8ToString(url));
+        if (url && qq !==  xhr.responseURL) { 
+          
+          console.log('fetchQQQ3');
+              var len = lengthBytesUTF8(xhr.responseURL) + 1;
+            ptr = _malloc(len);
+            stringToUTF8(xhr.responseURL, ptr, len);
+            
+            console.log('fetch: operatioQQQss. e: ');
+            
+          _free(HEAPU32[fetch + {{{ C_STRUCTS.emscripten_fetch_t.url }}} >> 2]);
+          HEAPU32[fetch + {{{ C_STRUCTS.emscripten_fetch_t.url }}} >> 2] = ptr;
+        }
+        
+      }
+      
+        
+       
+        //console.log('startFetch: QQQQ', url_);
+      //  url = HEAPU32[fetch + {{{ C_STRUCTS.emscripten_fetch_t.url }}} >> 2];
+      //  url_ = UTF8ToString(url);
+      //  console.log('startFetch: QQQQ', url_);
+      // //fetch.url = "htt[://sdf"
+      // console.log('startFetch: QQQQ', fetch.url);
       if (onsuccess) {{{ makeDynCall('vi', 'onsuccess') }}}(fetch);
       else if (successcb) successcb(fetch);
     }, fetchAttrSynchronous);
